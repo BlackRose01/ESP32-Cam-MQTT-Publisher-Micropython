@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ESP32-Cam Test</title>
+    </head>
+    
+    <body>
+        <img id="mqtt-image" src="" style="width:auto;">
+    </body>
+
+    <script src="./paho-mqtt-min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var client = new Paho.Client("192.168.0.2", 9001, "/ws", "ttt");
+
+        // set callback handlers
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        // connect the client
+        client.connect({
+                onSuccess: onConnect,
+                useSSL: false,
+                cleanSession: true,
+                reconnect: true,
+                mqttVersion: 4
+            });
+
+        function arrayBufferToBase64(buffer) {
+                var binary = '';
+                var bytes = new Uint8Array(buffer);
+                var len = bytes.byteLength;
+                for (var i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return window.btoa(binary);
+
+            }
+
+
+        // called when the client connects
+        function onConnect() {
+            // Once a connection has been made, make a subscription and send a message.
+            console.log("onConnect");
+            client.subscribe("plnts/cam1");
+        }
+
+        // called when the client loses its connection
+        function onConnectionLost(responseObject) {
+            console.log("onConnectionLost");
+            console.log(responseObject);
+        }
+
+        // called when a message arrives
+        function onMessageArrived(message) {
+            document.getElementById('mqtt-image').src = "data:image/jpeg;base64," + arrayBufferToBase64(message.payloadBytes);
+        }
+    </script>
+</html>
